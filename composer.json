@@ -1,0 +1,27 @@
+{
+    "name": "kvaksrud/ibm-cos-laravel",
+    "description": "A Laravel package to contact IBM COS Manager and Service API of on-premise installations",
+    "license": "Apache 2.0",
+    "autoload": {
+        "psr-4": {
+            "Kvaksrud\\IbmCos\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Patrick Kvaksrud",
+            "email": "patrick@kvaksrud.no"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "^7.4",
+        "spatie/laravel-data": "^1.2"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Kvaksrud\\IbmCos\\IbmCosServiceProvider"
+            ]
+        }
+    }
+}
