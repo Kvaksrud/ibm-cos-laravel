@@ -2,13 +2,13 @@
 
 namespace Kvaksrud\IbmCos;
 
-
-
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
 use Kvaksrud\IbmCos\Objects\CosResponse;
+use Kvaksrud\IbmCos\Objects\CosStorageAccountMetadata;
 
 class ServiceApi {
 
@@ -180,6 +180,65 @@ class ServiceApi {
         $this->Uri = '/accounts/' . $id . '/containers';
         return $this->ClientRequest();
     }
+
+    /**
+     * Create a Storage Account to hold buckets
+     *
+     * Return Codes
+     * Code 201 - Success
+     * Code 409 - Already exists (Conflict)
+     *
+     * @param string $id Name of the account
+     * @param array|CosStorageAccountMetadata|null $metadata An array of CosStorageAccountMetadata objects or a single CosStorageAccountMetadata object is accepted
+     * @return CosResponse
+     * @throws Exception
+     */
+    public function createStorageAccount(string $id, array|CosStorageAccountMetadata $metadata = null): CosResponse
+    {
+        if(is_array($metadata)){
+            foreach($metadata as $data){
+                if($data instanceof CosStorageAccountMetadata)
+                {
+                    if(preg_match(Cos::REGEX_STORAGE_ACCOUNT_METADATA,$data->key) === 1) {
+                        $this->Headers += ['x-account-meta-' . $data->key => $data->value];
+                        continue;
+                    } else
+                        throw(new Exception("Invalid metadata name supplied",400));
+                }
+                throw(new Exception("Invalid metadata objects. Must be of type CosStorageAccountMetadata",400));
+            }
+        }
+
+        if(preg_match(Cos::REGEX_STORAGE_ACCOUNT,$id) === 0)
+            throw(new Exception("Invalid Storage Account name",400));
+
+        $this->Method = 'PUT';
+        $this->Uri = '/accounts/' . $id;
+        return $this->ClientRequest();
+    }
+
+    /**
+     * Delete a storage account
+     *
+     * Return Codes
+     * Code 404 - Account not found
+     * Code 204 - Success
+     * Code 409 - Account contains data (Conflict). Delete buckets and credentials first.
+     *
+     * @param string $id Name of the account
+     * @return CosResponse
+     * @throws Exception
+     */
+    public function deleteStorageAccount(string $id): CosResponse
+    {
+        if(preg_match(Cos::REGEX_STORAGE_ACCOUNT,$id) === 0)
+            throw(new Exception("Invalid Storage Account name",400));
+
+        $this->Method = 'DELETE';
+        $this->Uri = '/accounts/' . $id;
+        return $this->ClientRequest();
+    }
+
 
 
 }
