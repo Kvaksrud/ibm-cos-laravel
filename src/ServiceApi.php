@@ -18,6 +18,7 @@ class ServiceApi {
 
     public $LastResponse;
 
+    private $ContentType;
     private $Body;
     private $Method;
     private $Uri;
@@ -95,7 +96,7 @@ class ServiceApi {
         try {
             $response = $this->Client->request($this->Method,$this->Uri,[
                 'headers' => $this->Headers,
-                'body' => $this->Body
+                'json' => $this->Body
             ]);
             $this->loadSuccessResponse($response);
         } catch (ClientException $e){
@@ -209,7 +210,7 @@ class ServiceApi {
             }
         }
 
-        if(preg_match(Cos::REGEX_STORAGE_ACCOUNT,$id) === 0)
+        if(Cos::isValidStorageAccountId($id) === false)
             throw(new Exception("Invalid Storage Account name",400));
 
         $this->Method = 'PUT';
@@ -231,7 +232,7 @@ class ServiceApi {
      */
     public function deleteStorageAccount(string $id): CosResponse
     {
-        if(preg_match(Cos::REGEX_STORAGE_ACCOUNT,$id) === 0)
+        if(Cos::isValidStorageAccountId($id) === false)
             throw(new Exception("Invalid Storage Account name",400));
 
         $this->Method = 'DELETE';
@@ -240,5 +241,59 @@ class ServiceApi {
     }
 
 
+    /**
+     * Create container (bucket)
+     *
+     * Return Codes
+     * Code 201 - Success
+     * Code 400 - Invalid Storage Location | Invalid Container Vault
+     * Code 409 - Conflict - Bucket with that name already exists
+     *
+     * @param string $name
+     * @param string $container_vault
+     * @param string $storage_account
+     * @return CosResponse
+     * @throws Exception
+     */
+    public function createContainer(string $name, string $container_vault, string $storage_account) : CosResponse
+    {
+        if(Cos::isValidContainerName($name) === false)
+            throw(new Exception("Invalid Container name",400));
+        if(Cos::isValidContainerVaultName($container_vault) === false)
+            throw(new Exception("Invalid Container Vault name",400));
+        if(Cos::isValidStorageAccountId($storage_account) === false)
+            throw(new Exception("Invalid Storage Account name",400));
+
+        $this->Headers += ['Content-Type' => 'application/json'];
+        $this->Body = [
+            'storage_location' => $container_vault,
+            'service_instance' => $storage_account
+        ];
+        $this->Method = 'PUT';
+        $this->Uri = '/container/' . $name;
+        return $this->ClientRequest();
+
+    }
+
+    /**
+     * Delete a container
+     *
+     * Return Codes
+     * Code 204 - Success
+     * Code 410 - Gone. Getting container failed
+     *
+     * @param string $name Container Name
+     * @return CosResponse
+     * @throws Exception
+     */
+    public function deleteContainer(string $name) : CosResponse
+    {
+        if(Cos::isValidContainerName($name) === false)
+            throw(new Exception("Invalid Container name",400));
+
+        $this->Method = 'DELETE';
+        $this->Uri = '/container/' . $name;
+        return $this->ClientRequest();
+    }
 
 }
