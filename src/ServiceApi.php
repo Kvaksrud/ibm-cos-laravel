@@ -18,7 +18,6 @@ class ServiceApi {
 
     public $LastResponse;
 
-    private $ContentType;
     private $Body;
     private $Method;
     private $Uri;
@@ -126,26 +125,17 @@ class ServiceApi {
     }
 
     /**
-     * CREDENTIALS
-     * Credentials belonging to Storage Accounts
-     */
-
-    /**
+     * Get storage account credentials
+     *
      * @param string $id ID of Storage Account
      * @return CosResponse
      */
-    public function getCredentials(string $id): CosResponse
+    public function getStorageAccountCredentials(string $id): CosResponse
     {
         $this->Method = 'GET';
         $this->Uri = '/credentials?project_id=' . $id;
         return $this->ClientRequest();
     }
-
-
-    /**
-     * STORAGE ACCOUNTS
-     * Has Containers and Credentials
-     */
 
     /**
      * Get all storage accounts in COS
@@ -293,6 +283,48 @@ class ServiceApi {
 
         $this->Method = 'DELETE';
         $this->Uri = '/container/' . $name;
+        return $this->ClientRequest();
+    }
+
+    /**
+     * Create a credential for a storage account
+     *
+     * @param string $id Storage account id
+     * @return CosResponse
+     * @throws Exception
+     */
+    public function createStorageAccountCredentials(string $id) : CosResponse
+    {
+        if(Cos::isValidStorageAccountId($id) === false)
+            throw(new Exception("Invalid Storage Account name",400));
+
+        $this->Headers += ['Content-Type' => 'application/json'];
+        $this->Body = [
+            'credential' => [
+                'project_id' => $id,
+                'type' => 'ec2'
+            ]
+        ];
+        $this->Method = 'POST';
+        $this->Uri = '/credentials';
+        return $this->ClientRequest();
+    }
+
+
+    /**
+     * Delete credential
+     *
+     * @param string $id ID of the credential
+     * @return CosResponse
+     * @throws Exception
+     */
+    public function deleteStorageAccountCredential(string $id) : CosResponse
+    {
+        if(Cos::isValidCredentialId($id) === false)
+            throw(new Exception("Invalid credential id name",400));
+
+        $this->Method = 'DELETE';
+        $this->Uri = '/credentials/' . $id;
         return $this->ClientRequest();
     }
 
