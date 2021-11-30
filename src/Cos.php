@@ -6,8 +6,8 @@ class Cos {
     public const REGEX_STORAGE_ACCOUNT = '/^([A-z]|[0-9]|-){1,32}$/';
     public const REGEX_CONTAINER_VAULT = Cos::REGEX_STORAGE_ACCOUNT;
     public const REGEX_CONTAINER = Cos::REGEX_STORAGE_ACCOUNT;
-
     public const REGEX_STORAGE_ACCOUNT_METADATA = '/^([a-z]|[0-9]|-){1,20}$/';
+    public const REGEX_CREDENTIAL_ID = Cos::REGEX_STORAGE_ACCOUNT_METADATA;
 
     /**
      * Validates if storage account id is valid
@@ -44,6 +44,19 @@ class Cos {
     public static function isValidContainerVaultName($name): bool
     {
         if(preg_match(Cos::REGEX_CONTAINER_VAULT,$name) === 0)
+            return false;
+        return true;
+    }
+
+    /**
+     * Validates if credential id is valid
+     *
+     * @param $id
+     * @return bool
+     */
+    public static function isValidCredentialId($id): bool
+    {
+        if(preg_match(Cos::REGEX_CREDENTIAL_ID,$id) === 0)
             return false;
         return true;
     }
